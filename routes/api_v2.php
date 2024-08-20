@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\V1\TicketController;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
