@@ -15,8 +15,8 @@ Route::middleware('auth:sanctum')->group(function() {
     
     Route::apiResource('authors', AuthorsController::class);
     Route::apiResource('authors.tickets', AuthorTicketsController::class);
-    Route::put('authors/{author}/tickets/{ticket}', [AuthorTicketsController::class, 'replace']);
-    Route::patch('authors/{author}/tickets/{ticket}', [AuthorTicketsController::class, 'update']);
+    Route::put('authors/{author}/tickets/{ticket}', [AuthorTicketsController::class, 'update']);
+    Route::patch('authors/{author}/tickets/{ticket}', [AuthorTicketsController::class, 'replace']);
     
     Route::get('/user', function (Request $request) {
         return $request->user();
