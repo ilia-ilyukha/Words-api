@@ -32,22 +32,16 @@ class TicketController extends ApiController
     public function store(StoreTicketRequest $request)
     {
         try {
-            $user = User::findOrFail($request->input('data.relationships.author.data.id'));
-
             //policy
-            $this->isAble('store', null);
+            $this->isAble('store', Ticket::class);
 
-
-        } catch (ModelNotFoundException $exception) {
-            return $this->ok(
-                'User not found',
-                [
-                    'error' => 'The provided user id does not exists'
-                ]
+            return new TicketResource(Ticket::create($request->mappedAttributes()));
+        } catch (AuthorizationException $ex) {
+            return $this->error(
+                'You are not authorize to update this resource',
+                401
             );
         }
-
-        return new TicketResource(Ticket::create($request->mappedAttributes()));
     }
 
     /**
@@ -126,7 +120,7 @@ class TicketController extends ApiController
     {
         try {
             $ticket = Ticket::findOrFail($ticket_id);
-            
+
             // policy
             $this->isAble('delete', $ticket);
 
