@@ -7,19 +7,18 @@ use Illuminate\Foundation\Http\FormRequest;
 class BaseTicketRequest extends FormRequest
 {
 
-    public function mappedAttributes() {
-        $attributesMap = [
+    public function mappedAttributes(array $otherAttributes = []) {
+        $attributeMap = array_merge([
             'data.attributes.title' => 'title',
             'data.attributes.description' => 'description',
             'data.attributes.status' => 'status',
-            'data.attributes.created_at' => 'created_at',
-            'data.attributes.updated_at' => 'updated_at',
-
+            'data.attributes.createdAt' => 'created_at',
+            'data.attributes.updatedAt' => 'updated_at',
             'data.relationships.author.data.id' => 'user_id',
-        ];
+        ], $otherAttributes);
 
         $attributesToUpdate = [];
-        foreach ($attributesMap as $key => $attribute) {
+        foreach ($attributeMap as $key => $attribute) {
             if($this->has($key)) {
                 $attributesToUpdate[$attribute] = $this->input($key);
             }
