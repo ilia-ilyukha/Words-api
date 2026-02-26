@@ -8,6 +8,8 @@ use App\Http\Resources\V1\WordResource;
 use App\Models\Word;
 use Illuminate\Http\Request;
 
+use Barryvdh\DomPDF\Facade\Pdf; // Импорт фасада
+
 class WordController extends Controller
 {
     /**
@@ -19,4 +21,25 @@ class WordController extends Controller
         return WordResource::collection($words);
     }
 
+    //TODO:
+    /**
+     * Get all capitals.
+     */
+    public function getCapitals()
+    {
+        // $capitals = Word::distinct()->pluck('words_capital_id');
+        // return CapitalResource::collection($capitals);
+    }
+
+    public function downloadPdf(WordFilter $filters, Request $request)
+    {
+        $words = Word::filter($filters)->get();
+
+        $pdf = Pdf::loadView('pdf.pdf_words', [
+            'items' => WordResource::collection($words),
+            'capital' => $request->filter['capital'] // TODO: Add validation ???
+        ]);
+
+        return $pdf->download('invoice.pdf');
+    }
 }

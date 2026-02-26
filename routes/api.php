@@ -15,7 +15,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 Route::get('/words', [WordController::class, 'index']); 
-Route::post('/words/readImg', [WordController::class, 'readFromImage']); 
+Route::get('/downloadPdf', [WordController::class, 'downloadPdf']);
 
 // Route::get('/', function() {
 //     return response()->json([
