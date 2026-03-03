@@ -9,7 +9,7 @@ class WordFilter extends QueryFilter {
     }
 
     public function rand($value){
-        return $this->builder->inRandomOrder();
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? $this->builder->inRandomOrder() : '';
     }
 
     public function limit($value){

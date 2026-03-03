@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\V1\FileUploadController;
 use App\Http\Controllers\Api\V1\WordController;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
@@ -15,7 +16,9 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 Route::get('/words', [WordController::class, 'index']); 
+Route::get('/words/capitals', [WordController::class, 'getCapitals']); 
 Route::get('/downloadPdf', [WordController::class, 'downloadPdf']);
+Route::post('/upload', [FileUploadController::class, 'upload'])->name('upload');
 
 // Route::get('/', function() {
 //     return response()->json([
