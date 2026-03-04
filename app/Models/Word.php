@@ -11,8 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Word extends Model
 {
     use HasFactory;
-    
-    public function scopeFilter(Builder $builder, QueryFilter $filters){
+
+    public $timestamps = false;
+    protected $fillable = ['DE', 'RU', 'words_capital_id'];
+
+    public function scopeFilter(Builder $builder, QueryFilter $filters)
+    {
         return $filters->apply($builder);
     }
 }

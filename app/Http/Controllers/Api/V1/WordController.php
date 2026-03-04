@@ -27,8 +27,8 @@ class WordController extends Controller
      */
     public function getCapitals()
     {
-        // $capitals = Word::distinct()->pluck('words_capital_id');
-        // return CapitalResource::collection($capitals);
+        $capitals = Word::distinct()->pluck('words_capital_id');
+        return $capitals;
     }
 
     public function downloadPdf(WordFilter $filters, Request $request)
@@ -40,6 +40,7 @@ class WordController extends Controller
             'capital' => $request->filter['capital'] // TODO: Add validation ???
         ]);
 
-        return $pdf->download('invoice.pdf');
+        return $pdf->download('words.pdf');
     }
+
 }
