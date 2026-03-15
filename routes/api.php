@@ -17,9 +17,13 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 
 Route::get('/words', [WordController::class, 'index']); 
 Route::get('/words/capitals', [WordController::class, 'getCapitals']); 
-Route::get('/downloadPdf', [WordController::class, 'downloadPdf']);
-Route::post('/upload', [FileUploadController::class, 'upload'])->name('upload');
 
+Route::get('/downloadPdf', [WordController::class, 'downloadPdf']);
+
+Route::post('/upload', [FileUploadController::class, 'upload'])->name('upload');
+Route::get('/readText', [WordController::class, 'readText'])->name('readText');
+
+Route::post('/generateSentence', [WordController::class, 'generateSentence'])->name('generateSentence');
 // Route::get('/', function() {
 //     return response()->json([
 //         'message' => 'Hello, API!'
