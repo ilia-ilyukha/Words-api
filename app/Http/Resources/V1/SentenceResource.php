@@ -5,7 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class WordResource extends JsonResource
+class SentenceResource extends JsonResource
 {
     // public static $wrap = 'word'; // Wrap container for response
     /**
@@ -16,18 +16,11 @@ class WordResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'type' => 'words',
+            'type' => 'sentences',
             'id' => $this->id,
-            'attributes' => [
-                'DE' => $this->DE,
-                'RU' => $this->RU,
-                'words_capital_id' => $this->words_capital_id,
-                
-                'sentences' => SentenceResource::collection(
-                    $this->whenLoaded('sentences')
-                ),
-            ],
-
+            'word_id'  => $this->word_id,
+            'description_DE' => $this->description_DE,
+            'description_RU' => $this->description_RU,
         ];
     }
 }

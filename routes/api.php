@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\V1\FileUploadController;
+use App\Http\Controllers\Api\V1\SentenceController;
 use App\Http\Controllers\Api\V1\WordController;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
@@ -17,8 +18,14 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 
 //TODO: 1) Move to api_v1.php;
 // 2) Create group for words
+Route::group(['prefix' => 'words'], function () {
+
+    Route::get('/capitals', [WordController::class, 'getCapitals']);
+    Route::get('/{id}', [WordController::class, 'show']);
+
+    Route::apiResource('sentences', SentenceController::class);
+});
 Route::get('/words', [WordController::class, 'index']);
-Route::get('/words/capitals', [WordController::class, 'getCapitals']);
 
 
 // Route::delete('/{id}', [WordController::class, 'destroy']);
@@ -32,6 +39,7 @@ Route::get('/readText', [WordController::class, 'readText'])->name('readText');
 Route::post('/translate', [WordController::class, 'translate'])->name('translate');
 
 Route::post('/generateSentence', [WordController::class, 'generateSentence'])->name('generateSentence');
+
 // Route::get('/', function() {
 //     return response()->json([
 //         'message' => 'Hello, API!'
