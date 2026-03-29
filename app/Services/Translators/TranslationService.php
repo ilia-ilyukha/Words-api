@@ -71,4 +71,35 @@ class TranslationService
             return null;
         }
     }
+
+    
+    public function translateAI($words = [], $targetLang = 'ru')
+    {
+        $promt = '';
+            if (is_array($words)) {
+                $promt = 'Translate the following words into ' . $targetLang . ': ' . implode(', ', $words) . '. 
+                Return only the translations in JSON format, without any explanations. 
+                The JSON should have the following structure: { 
+                    "original": "The input word", 
+                    "translation": "Translation of the input word in ' . $targetLang . '" 
+                }';
+            } else {
+                $promt = 'Translate the following word into ' . $targetLang . ': ' . $words . '. Return only the translation in JSON format, without any explanations. The JSON should have the following structure: { "original": "The input word", "translation": "Translation of the input word in ' . $targetLang . '" }';
+            }        
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . env('OPENROUTER_API_KEY'),
+            'Content-Type' => 'application/json'
+        ])->post('https://openrouter.ai/api/v1/chat/completions', [
+            'model' => 'google/gemma-2-9b-it',
+            'messages' => [
+                [
+                    'role' => 'user',
+                    'content' => $promt
+                ]
+            ]
+        ]);
+
+        dd($response->json()['choices'][0]['message']['content']);
+        return $response->json()['choices'][0]['message']['content'] ?? 'No response';
+    }
 }

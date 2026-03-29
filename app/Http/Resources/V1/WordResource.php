@@ -30,21 +30,7 @@ class WordResource extends JsonResource
                 'RU' => $this->RU,
                 'words_capital_id' => $this->words_capital_id,
             ],
-            // 'relationships' => [
-            //     'author' => [
-            //         'data' => [
-            //             'type' => 'user',
-            //             'id' => $this->user_id
-            //         ],
-            //         'links' => [
-            //             'self' => route('authors.show', ['author' => $this->user_id])
-            //         ],
-            //     ],
-            // ],
-            // 'includes' => new UserResource($this->whenLoaded('author')),
-            // 'links' => [
-            //     'self' => route('tickets.show', ['ticket' => $this->id])
-            // ],
+           
         ];
     }
 }

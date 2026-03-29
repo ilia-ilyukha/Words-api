@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use App\Services\Files\FileProcessorDispatcher;
 use App\Services\Files\Processors\JpgFileProcessor;
 use App\Services\Files\Processors\XmlFileProcessor;
+use App\Services\WordService;
 
 class FileProcessorServiceProvider extends ServiceProvider
 {
@@ -16,7 +17,7 @@ class FileProcessorServiceProvider extends ServiceProvider
             
             $dispatcher
                 ->addProcessor(new JpgFileProcessor())
-                ->addProcessor(new XmlFileProcessor());
+                ->addProcessor(new XmlFileProcessor(new WordService()));
 
             return $dispatcher;
         });

@@ -59,23 +59,26 @@ class WordController extends Controller
 
     public function readText()
     {
-        $file_path = 'app/public/images/words.jpg';
-
-        // $words = $this->wordService->readText($file_path)['words_short_string'] ?? '';
-        $words = $this->wordService->readText($file_path)['words'] ?? [];
-
-        if (empty($words)) {
-            return response()->json([
-                'message' => 'No words found in the image',
-                'status' => 404
-            ], 404);
-        }
+        $words = file_get_contents(storage_path('app/example.txt'));
+        $words = explode("\n", $words);
 
         // TODO:Create abstract class for translation and use it here and in translate method
-        $resuls = $this->translationService->translate($words, 'ru');
-        
+        // $resuls = $this->translationService->translate($words, 'ru');
+        $resuls = $this->translationService->translateAI($words, 'ru');
+
         // dd($words, $resuls);
         // $resuls = $this->wordService->libreTranslate($words, 'auto', 'ru');
+
+        return $resuls;
+    }
+
+    public function translate(Request $request)
+    {
+        $request->validate([
+            'words' => 'required|array',
+            // 'target_lang' => 'required|string'
+        ]);
+        $resuls = $this->translationService->translateAI($request->input('words'), $request->input('target_lang'));
 
         return $resuls;
     }
@@ -86,6 +89,33 @@ class WordController extends Controller
             'text' => 'required|string',
         ]);
 
-        return $this->wordService->generateSentence($request->input('text'), 'deu');
+        $sentence = $this->wordService->generateSentence($request->input('text'), 'deu');
+        
+        // TODO: Create a resource for this response and return it, instead of array with strings
+        return $sentence;
+    }
+
+    public function destroyMultiple(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer'
+        ]);
+
+        try {
+            $result = $this->wordService->deleteMultipleRecords($request->ids);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Deleted {$result['deleted']} records",
+                'deleted_count' => $result['deleted'],
+                'failed_ids' => $result['failed']
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

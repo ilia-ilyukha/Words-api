@@ -9,6 +9,7 @@ use App\Services\Translators\TranslationService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 
 class WordService
@@ -17,7 +18,6 @@ class WordService
     {
         $results = DB::transaction(function () use ($xmlData) {
             $words = [];
-            $wordService = new WordService();
 
             foreach ($xmlData['word'] as $wordData) {
                 $storeWordRequest = new StoreWordRequest([
@@ -26,7 +26,7 @@ class WordService
                     'words_capital_id' => (int)$xmlData['@words_capital'] ?? 0,
                 ]);
 
-                $words[] = $wordService->store($storeWordRequest);
+                $words[] = $this->store($storeWordRequest);
             }
 
             return $words;
@@ -111,12 +111,53 @@ class WordService
         return $translations;
     }
 
-
     public function generateSentence($text = "", $targetLang = 'de')
     {
-        // $promt = "Generate a sentence in $targetLang language using the following words: $text";
-        $promt = 'Create a simple German sentence using the word (A2, B1, B2 levels) "' . $text . '". Return only the sentences and translations in Russian';
-        
+        // $promt = 'Create a simple German sentence using the word (A2, B1, B2 levels) "' . $text . '". 
+        //     Return only the sentences and translations in Russian, in JSON format, without any explanations. 
+        //     The JSON should have the following structure: 
+        //     {
+        //         "word": "The input word",
+        //         "translation": "Translation of the input word in Russian",
+        //         "sentences": {
+        //             "B2": {
+        //                 "DE": "Generated sentence in German"
+        //                 "RU": "Translation of the sentence in Russian"
+        //             }
+        //         }
+        //     }';
+        $promt = 'Create a simple German sentence using the word B2 levels "' . $text . '". 
+            Return only the sentences and translations in Russian, in string format, without any explanations. 
+            The string should have the following structure: 
+            Generated sentence in German. Divider | Translation of the sentence in Russian. 
+            For example: "Generated sentence in German | Translation of the sentence in Russian"';
+
+        // $promt = 'Create a simple German sentence using the word (A2, B1, B2 levels) "' . $text . '". 
+        //     Return only the sentences and translations in Russian, in JSON format, without any explanations. 
+        //     The JSON should have the following structure: 
+        //     {
+        //         "word": "The input word",
+        //         "translation": "Translation of the input word in Russian",
+        //         "sentences": {
+        //             "A1": {
+        //                 "DE": "Generated sentence in German"
+        //                 "RU": "Translation of the sentence in Russian"
+        //             },
+        //             "A2": {
+        //                 "DE":  "Generated sentence in German"
+        //                 "RU":  "Translation of the sentence in Russian"
+        //             },
+        //             "B1": {
+        //                 "DE": "Generated sentence in German"
+        //                 "RU": "Translation of the sentence in Russian"
+        //             },
+        //             "B2": {
+        //                 "DE": "Generated sentence in German"
+        //                 "RU": "Translation of the sentence in Russian"
+        //             }
+        //         }
+        //     }';
+
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . env('OPENROUTER_API_KEY'),
             'Content-Type' => 'application/json'
@@ -130,7 +171,19 @@ class WordService
             ]
         ]);
 
-        return $response->json()['choices'][0]['message']['content'] ?? 'No response';
+        $results = $response->json()['choices'][0]['message']['content'] ?? 'No response';
+        $results = explode("|", $results);
+        // TODO: Create a resource for this response and return it, instead of array with strings
+        return [
+            'type' => 'sentences',
+            'word'  => $text,
+            'sentences' => [
+                "B2" => [
+                    'DE' => $results[0] ?? '',
+                    'RU' => $results[1] ?? '',
+                ],
+            ],
+        ];
     }
     /**
      * Read a word resource by ID
@@ -153,10 +206,61 @@ class WordService
     /**
      * Delete a word resource
      */
-    public function delete(string $id): bool
+    public function deleteWord(int $id): bool
     {
-        // Delete logic here
-        return true;
+        try {
+            $record = Word::findOrFail($id);
+
+            // Логируем удаление
+            Log::info('Deleting dictionary record', [
+                'id' => $id,
+                'data' => $record->toArray(),
+                // 'user' => auth()->id()
+            ]);
+
+            return (bool) $record->delete();
+        } catch (\Exception $e) {
+            Log::error('Failed to delete dictionary record', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function deleteMultipleRecords(array $ids): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $deletedCount = Word::whereIn('id', $ids)->delete();
+            $failedIds = array_diff($ids, $this->getExistingIds($ids));
+
+            DB::commit();
+
+            Log::info('Batch deletion completed', [
+                'total_requested' => count($ids),
+                'deleted' => $deletedCount,
+                'failed' => $failedIds
+            ]);
+
+            return [
+                'deleted' => $deletedCount,
+                'failed' => $failedIds
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Batch deletion failed', [
+                'ids' => $ids,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    private function getExistingIds(array $ids): array
+    {
+        return Word::whereIn('id', $ids)->pluck('id')->toArray();
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Services\Files\Processors;
 
 use App\Services\Files\Processors\BaseFileProcessor;
+use App\Services\WordService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,6 +15,10 @@ class XmlFileProcessor extends BaseFileProcessor
         'application/x-xml',
     ];
 
+    public function __construct(
+        private WordService $wordService
+    ) {}
+
     public function process(UploadedFile $file): array
     {
         $content = file_get_contents($file->getRealPath());
@@ -22,6 +27,10 @@ class XmlFileProcessor extends BaseFileProcessor
         // Конвертируем XML в массив с нужной структурой
         $data = $this->xmlToArray($xml);
 
+
+        // Save data to the database
+
+        $dbResults = $this->wordService->prepareForStoreXML($data);
         // Валидируем структуру
         // if (!$this->validateStructure($data, $this->getExpectedStructure())) {
         //     throw new \Exception('Invalid XML structure');
@@ -64,7 +73,7 @@ class XmlFileProcessor extends BaseFileProcessor
         foreach ($xml->attributes() as $key => $value) {
             $result['@' . $key] = (string) $value;
         }
-        
+
         $result = $this->recursiveXmlToArray($xml);
         return $result;
     }

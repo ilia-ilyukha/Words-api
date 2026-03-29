@@ -15,13 +15,21 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
-Route::get('/words', [WordController::class, 'index']); 
-Route::get('/words/capitals', [WordController::class, 'getCapitals']); 
+//TODO: 1) Move to api_v1.php;
+// 2) Create group for words
+Route::get('/words', [WordController::class, 'index']);
+Route::get('/words/capitals', [WordController::class, 'getCapitals']);
+
+
+// Route::delete('/{id}', [WordController::class, 'destroy']);
+Route::delete('/words', [WordController::class, 'destroyMultiple']);
+Route::delete('/all', [WordController::class, 'destroyAll']);
 
 Route::get('/downloadPdf', [WordController::class, 'downloadPdf']);
 
 Route::post('/upload', [FileUploadController::class, 'upload'])->name('upload');
 Route::get('/readText', [WordController::class, 'readText'])->name('readText');
+Route::post('/translate', [WordController::class, 'translate'])->name('translate');
 
 Route::post('/generateSentence', [WordController::class, 'generateSentence'])->name('generateSentence');
 // Route::get('/', function() {
