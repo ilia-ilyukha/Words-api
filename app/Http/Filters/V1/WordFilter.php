@@ -16,4 +16,8 @@ class WordFilter extends QueryFilter {
         return $this->builder->limit($value);
     }
 
+    public function sentences(){
+        return $this->builder->with('sentences');
+    }
+
 }

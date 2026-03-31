@@ -56,8 +56,10 @@ class WordController extends Controller
 
     public function downloadPdf(WordFilter $filters, Request $request)
     {
-        $words = Word::filter($filters)->get();
-
+        $words = Word::filter($filters)->with(['sentences' => function ($q) {
+            $q->limit(1);
+        }])->get();
+        
         $pdf = Pdf::loadView('pdf.pdf_words', [
             'items' => WordResource::collection($words),
             'capital' => $request->filter['capital'] // TODO: Add validation ???
