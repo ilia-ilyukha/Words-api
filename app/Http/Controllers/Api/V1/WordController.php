@@ -44,6 +44,16 @@ class WordController extends Controller
         return $capitals;
     }
 
+    /**
+     * Display the specified resource.
+     */
+    public function show($id)
+    {
+        $word = Word::with('sentences')->findOrFail($id);
+
+        return new WordResource($word);
+    }
+
     public function downloadPdf(WordFilter $filters, Request $request)
     {
         $words = Word::filter($filters)->get();
