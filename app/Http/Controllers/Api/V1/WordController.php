@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Filters\V1\WordFilter;
 use App\Http\Resources\V1\WordResource;
 use App\Models\Word;
+use App\Services\SentenceService;
 use App\Services\Translators\TranslationService;
 use App\Services\WordService;
 use Illuminate\Http\Request;
@@ -13,18 +14,21 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf; // Импорт фасада
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Symfony\Contracts\Service\Test\ServiceLocatorTest;
 
 class WordController extends Controller
 {
     private WordService $wordService;
     private TranslationService $translationService;
+    private SentenceService $sentenceService;
 
-    public function __construct(WordService $wordservice, TranslationService $translationService)
+    public function __construct(WordService $wordservice, TranslationService $translationService, SentenceService $sentenceService)
     {
         $this->wordService = $wordservice;
         $this->translationService = $translationService;
+        $this->sentenceService = $sentenceService;
     }
-     
+
     /**
      * Display a listing of the resource.
      */
@@ -34,7 +38,6 @@ class WordController extends Controller
         return WordResource::collection($words);
     }
 
-    //TODO:
     /**
      * Get all capitals.
      */
@@ -59,7 +62,7 @@ class WordController extends Controller
         $words = Word::filter($filters)->with(['sentences' => function ($q) {
             $q->limit(1);
         }])->get();
-        
+
         $pdf = Pdf::loadView('pdf.pdf_words', [
             'items' => WordResource::collection($words),
             'capital' => $request->filter['capital'] // TODO: Add validation ???
@@ -102,7 +105,7 @@ class WordController extends Controller
         ]);
 
         $sentence = $this->wordService->generateSentence($request->input('text'), 'deu');
-        
+
         // TODO: Create a resource for this response and return it, instead of array with strings
         return $sentence;
     }
@@ -129,5 +132,19 @@ class WordController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function generateSentencesForCapital(Request $request)
+    {
+        $request->validate([
+            'capital_id' => 'required|integer',
+            'limit' => 'sometimes|integer|max:20' // Optional limit parameter with a maximum of 20
+        ]);
+
+        $words = Word::doesntHave('sentences')->where('words_capital_id', $request->capital_id)->limit($request->input('limit', 10))->get();
+
+        $sentences = $this->wordService->generateSentences($words);
+        
+        return $sentences;
     }
 }

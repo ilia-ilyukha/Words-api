@@ -126,6 +126,10 @@ class WordService
         //             }
         //         }
         //     }';
+        Log::info('Generating sentence for word', [
+            'word' => $text,
+            'target_language' => $targetLang
+        ]);
         $promt = 'Create a simple German sentence using the word B2 levels "' . $text . '". 
             Return only the sentences and translations in Russian, in string format, without any explanations. 
             The string should have the following structure: 
@@ -263,6 +267,26 @@ class WordService
         return Word::whereIn('id', $ids)->pluck('id')->toArray();
     }
 
+    public function generateSentences($words = [])
+    {
+        $sentences = [];
+        foreach ($words as $word) {
+            $sentence = $this->generateSentence($word->DE, 'de');
+            // $sentences = array_merge($sentences, $this->wordService->generateSentence($word->DE, 'de'));
+            $sentenceService = new SentenceService();
+            $sentenceService->storeSentence(
+                $sentence['sentences']['B2']['DE'] ?? null,
+                $sentence['sentences']['B2']['RU'] ?? null,
+                $word->id
+            );
+
+            $sentences[] = [
+                'word' => $word->DE,
+                'sentence' => $sentence['sentences']['B2']['DE'] ?? null,
+            ];
+        }
+        return $sentences;
+    }
     /**
      * Get all words
      */

@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Requests\Api\V1\StoreSentenceRequest;
 use App\Http\Resources\V1\SentenceResource;
 use App\Models\Sentence;
+use App\Services\SentenceService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 class SentenceController extends ApiController
 {
+    public function __construct(
+        private SentenceService $sentenceService
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -31,11 +35,11 @@ class SentenceController extends ApiController
      */
     public function store(StoreSentenceRequest $request)
     {
-        $sentence = Sentence::create([
-            'description_DE' => $request->input('description_de'),
-            'description_RU' => $request->input('description_ru'),
-            'word_id' => $request->input('word_id'),
-        ]);
+        $sentence = $this->sentenceService->storeSentence(
+            $request->input('description_DE'),
+            $request->input('description_RU'),
+            $request->input('word_id')
+        );
         return new SentenceResource($sentence);
     }
 

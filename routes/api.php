@@ -27,6 +27,7 @@ Route::group(['prefix' => 'words'], function () {
 });
 Route::get('/words', [WordController::class, 'index']);
 
+Route::get('/generateSentencesForCapital', [WordController::class, 'generateSentencesForCapital']);
 
 // Route::delete('/{id}', [WordController::class, 'destroy']);
 Route::delete('/words', [WordController::class, 'destroyMultiple']);
