@@ -43,7 +43,7 @@ class WordController extends ApiController
      */
     public function getCapitals()
     {
-        $capitals = Word::distinct()->pluck('words_capital_id');
+        $capitals = Word::distinct()->orderBy('words_capital_id', 'desc')->pluck('words_capital_id');
         return $capitals;
     }
 
