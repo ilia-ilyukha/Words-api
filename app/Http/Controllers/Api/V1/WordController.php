@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Symfony\Contracts\Service\Test\ServiceLocatorTest;
 
-class WordController extends Controller
+class WordController extends ApiController
 {
     private WordService $wordService;
     private TranslationService $translationService;
@@ -141,10 +141,21 @@ class WordController extends Controller
             'limit' => 'sometimes|integer|max:20' // Optional limit parameter with a maximum of 20
         ]);
 
-        $words = Word::doesntHave('sentences')->where('words_capital_id', $request->capital_id)->limit($request->input('limit', 10))->get();
+        try {
+            $words = Word::doesntHave('sentences')->where('words_capital_id', $request->capital_id)->limit($request->input('limit', 10))->get();
 
-        $sentences = $this->wordService->generateSentences($words);
-        
-        return $sentences;
+            $sentences = $this->wordService->generateSentences($words);
+
+            return $this->ok(
+                'Sentences generated successfully',
+                [
+                    'sentences' => $sentences,
+                    'capital_id' => $request->capital_id,
+                    'generated_count' => count($sentences)
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->ok('Something went wrong: ' . $e->getMessage(), 200);
+        }
     }
 }
