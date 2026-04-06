@@ -113,19 +113,6 @@ class WordService
 
     public function generateSentence($text = "", $targetLang = 'de')
     {
-        // $promt = 'Create a simple German sentence using the word (A2, B1, B2 levels) "' . $text . '". 
-        //     Return only the sentences and translations in Russian, in JSON format, without any explanations. 
-        //     The JSON should have the following structure: 
-        //     {
-        //         "word": "The input word",
-        //         "translation": "Translation of the input word in Russian",
-        //         "sentences": {
-        //             "B2": {
-        //                 "DE": "Generated sentence in German"
-        //                 "RU": "Translation of the sentence in Russian"
-        //             }
-        //         }
-        //     }';
         Log::info('Generating sentence for word', [
             'word' => $text,
             'target_language' => $targetLang

@@ -28,7 +28,7 @@
         }
 
         .table-pdf {
-            font-size: 10px;
+            font-size: {{ $fontSize }}px;
         },
         .sentences p,
         hr {
@@ -48,8 +48,9 @@
         <tbody>
             @foreach ($items as $item)
             <tr>
-                <td>{{ $item->DE }}</td>
-                <td>{{ $item->RU }}</td>
+               @if(in_array("DE", $selectedColums)) <td>{{ $item->DE }}</td> @endif
+               @if(in_array("RU", $selectedColums)) <td>{{ $item->RU }}</td> @endif
+               @if(in_array("sentences", $selectedColums)) 
                 <td class="sentences">
                     <!-- @foreach ($item->sentences as $sentence)
                         <p>{{ $sentence->description_DE }}</p>
@@ -62,6 +63,7 @@
                     <p>{{ $sentence->description_RU }}</p>
                     @endif
                 </td>
+                @endif
             </tr>
             @endforeach
         </tbody>

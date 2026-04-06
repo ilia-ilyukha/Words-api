@@ -59,16 +59,26 @@ class WordController extends ApiController
 
     public function downloadPdf(WordFilter $filters, Request $request)
     {
+        $request->validate([
+            'filter.capital' => 'sometimes|integer'
+        ]);
+        $selectedColums = [
+            'DE',
+            'RU',
+            'sentences'
+        ];
         $words = Word::filter($filters)->with(['sentences' => function ($q) {
             $q->limit(1);
         }])->get();
 
         $pdf = Pdf::loadView('pdf.pdf_words', [
             'items' => WordResource::collection($words),
-            'capital' => $request->filter['capital'] // TODO: Add validation ???
+            'capital' => $request->filter['capital'], // TODO: Add validation ???
+            'selectedColums' => $selectedColums,
+            'fontSize' => 13 + (5 - count($selectedColums)) // Adjust font size based on the number of columns
         ]);
 
-        return $pdf->download('words.pdf');
+        return $pdf->download('words_' . $request->filter['capital'] . '.pdf');
     }
 
 
