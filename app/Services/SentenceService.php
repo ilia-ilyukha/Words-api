@@ -20,4 +20,14 @@ class SentenceService
         ]);
         return $sentence;
     }
+
+    public function delete(int $sentence_id)
+    {
+        Log::info('Deleting sentence', [
+            'id' => $sentence_id
+        ]);
+        $sentence = Sentence::findOrFail($sentence_id);
+        $sentence->delete();
+        return $sentence;
+    }
 }

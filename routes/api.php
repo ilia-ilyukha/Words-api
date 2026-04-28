@@ -16,16 +16,16 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
-//TODO: 1) Move to api_v1.php;
-// 2) Create group for words
 Route::group(['prefix' => 'words'], function () {
+
+    Route::get('/', [WordController::class, 'index']);
+    Route::post('/', [WordController::class, 'store'])->name('words.store');;
 
     Route::get('/capitals', [WordController::class, 'getCapitals']);
     Route::get('/{id}', [WordController::class, 'show']);
 
     Route::apiResource('sentences', SentenceController::class);
 });
-Route::get('/words', [WordController::class, 'index']);
 
 Route::get('/generateSentencesForCapital', [WordController::class, 'generateSentencesForCapital']);
 

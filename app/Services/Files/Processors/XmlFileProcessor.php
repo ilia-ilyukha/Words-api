@@ -5,6 +5,7 @@ namespace App\Services\Files\Processors;
 use App\Services\Files\Processors\BaseFileProcessor;
 use App\Services\WordService;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class XmlFileProcessor extends BaseFileProcessor
@@ -21,22 +22,25 @@ class XmlFileProcessor extends BaseFileProcessor
 
     public function process(UploadedFile $file): array
     {
-        $content = file_get_contents($file->getRealPath());
-        $xml = simplexml_load_string($content);
+        try {
+            $content = file_get_contents($file->getRealPath());
+            $xml = simplexml_load_string($content);
 
-        // Конвертируем XML в массив с нужной структурой
-        $data = $this->xmlToArray($xml);
+            // Конвертируем XML в массив с нужной структурой
+            $data = $this->xmlToArray($xml);
 
+            // Save data to the database
+            $dbResults = $this->wordService->prepareForStoreXML($data);
+            // Валидируем структуру
+            // if (!$this->validateStructure($data, $this->getExpectedStructure())) {
+            //     throw new \Exception('Invalid XML structure');
+            // }
 
-        // Save data to the database
-
-        $dbResults = $this->wordService->prepareForStoreXML($data);
-        // Валидируем структуру
-        // if (!$this->validateStructure($data, $this->getExpectedStructure())) {
-        //     throw new \Exception('Invalid XML structure');
-        // }
-
-        return $data;
+            return $data;
+        } catch (\Exception $e) {
+            Log::error('Error processing XML file: ' . $e->getMessage());
+            throw new \Exception('Error processing XML file: ' . $e->getMessage());
+        }
     }
 
     //TODO: Create CLass for XML and move these methods there ???
@@ -69,12 +73,8 @@ class XmlFileProcessor extends BaseFileProcessor
         $result = [];
         $content = [];
 
-        // Convert attributes
-        foreach ($xml->attributes() as $key => $value) {
-            $result['@' . $key] = (string) $value;
-        }
-
         $result = $this->recursiveXmlToArray($xml);
+        
         return $result;
     }
 
@@ -90,6 +90,7 @@ class XmlFileProcessor extends BaseFileProcessor
 
         // Convert child elements
         foreach ($xml->children() as $element) {
+            
             $name = $element->getName();
             $childContent = $this->recursiveXmlToArray($element);
 

@@ -19,7 +19,11 @@ class WordService
         $results = DB::transaction(function () use ($xmlData) {
             $words = [];
 
-            foreach ($xmlData['word'] as $wordData) {
+            if (isset($xmlData['words']['word']) && !is_array($xmlData['words']['word'])) {
+                $xmlData['words']['word'] = [$xmlData['words']['word']]; // Wrap single word in an array
+            }
+
+            foreach ($xmlData['words']['word'] as $wordData) {
                 $storeWordRequest = new StoreWordRequest([
                     'DE' => $wordData['de'] ?? null,
                     'RU' => $wordData['ru'] ?? null,
@@ -36,26 +40,14 @@ class WordService
     /**
      * Create a new word resource
      */
-    public function store(StoreWordRequest $request)
+    public function store(StoreWordRequest $request): WordResource
     {
-        //TODO: Do not works, for some reason
-        // $request->validated($request->all());
-        try {
-            // //policy
-            // $this->isAble('store', Word::class);
-
-            return new WordResource(Word::create([
-                'DE' => $request->input('DE'),
-                'RU' => $request->input('RU'),
-                'words_capital_id' => $request->input('words_capital_id'),
-            ]));
-            // return new WordResource(Word::create($request->mappedAttributes()));
-        } catch (AuthorizationException $ex) {
-            return response()->json([
-                'message' => 'You are not authorize to update this resource',
-                'status' => 401
-            ], 401);
-        }
+        return new WordResource(Word::create([
+            'DE' => $request->input('DE'),
+            'RU' => $request->input('RU'),
+            'words_capital_id' => $request->input('words_capital_id') ?? 0,
+        ]));
+        // return new WordResource(Word::create($request->mappedAttributes()));
     }
 
     public function readText($file_path)
@@ -153,7 +145,7 @@ class WordService
             'Authorization' => 'Bearer ' . env('OPENROUTER_API_KEY'),
             'Content-Type' => 'application/json'
         ])->post('https://openrouter.ai/api/v1/chat/completions', [
-            'model' => 'google/gemma-2-9b-it',
+            'model' => env('OPENROUTER_API_MODEL'),
             'messages' => [
                 [
                     'role' => 'user',
@@ -162,6 +154,12 @@ class WordService
             ]
         ]);
 
+        if (!$response->json()['choices'][0]['message']['content']) {
+            Log::info('Received response from OpenRouter', [
+                'response' => $response->json()
+            ]);
+        }
+        
         $results = $response->json()['choices'][0]['message']['content'] ?? 'No response';
         $results = explode("|", $results);
         // TODO: Create a resource for this response and return it, instead of array with strings
@@ -257,6 +255,7 @@ class WordService
     public function generateSentences($words = [])
     {
         $sentences = [];
+        
         foreach ($words as $word) {
             $sentence = $this->generateSentence($word->DE, 'de');
             // $sentences = array_merge($sentences, $this->wordService->generateSentence($word->DE, 'de'));

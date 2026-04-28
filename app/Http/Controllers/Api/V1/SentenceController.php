@@ -36,9 +36,9 @@ class SentenceController extends ApiController
     public function store(StoreSentenceRequest $request)
     {
         $sentence = $this->sentenceService->storeSentence(
-            $request->input('description_DE'),
-            $request->input('description_RU'),
-            $request->input('word_id')
+            $request->description_de,
+            $request->description_ru,
+            $request->word_id
         );
         return new SentenceResource($sentence);
     }
@@ -78,6 +78,12 @@ class SentenceController extends ApiController
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $this->sentenceService->delete($id);
+
+            return $this->success('Sentence deleted successfully', 200);
+        } catch (ModelNotFoundException $exception) {
+            return $this->error('Sentence cannot be found', 404);
+        }
     }
 }
