@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Filters\V1\WordFilter;
+use App\Http\Requests\Api\V1\StoreWordRequest;
 use App\Http\Resources\V1\WordResource;
 use App\Models\Word;
 use App\Services\SentenceService;
@@ -12,8 +13,10 @@ use App\Services\WordService;
 use Illuminate\Http\Request;
 
 use Barryvdh\DomPDF\Facade\Pdf; // Импорт фасада
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Symfony\Contracts\Service\Test\ServiceLocatorTest;
 
 class WordController extends ApiController
@@ -57,6 +60,32 @@ class WordController extends ApiController
         return new WordResource($word);
     }
 
+    /**
+     * Create a new word resource
+     */
+    public function store(StoreWordRequest $request)
+    {
+        $data = $request->validated();
+        try {
+            $results = [];
+
+            foreach ($data['words'] as $wordData) {
+                $results[] = $this->wordService->store(new StoreWordRequest($wordData));
+            }
+
+            return $this->ok(
+                'Words created successfully',
+                [
+                    'words' => $results,
+                    'capital_id' => $request->capital_id,
+                    'created_count' => count($results)
+                ]
+            );
+        } catch (AuthorizationException $ex) {
+            return $this->ok('You are not authorized to create this resource' . $ex->getMessage(), 401);
+        }
+    }
+
     public function downloadPdf(WordFilter $filters, Request $request)
     {
         $request->validate([
@@ -65,11 +94,13 @@ class WordController extends ApiController
         $selectedColums = [
             'DE',
             'RU',
-            'sentences'
+            // 'sentences'
         ];
         $words = Word::filter($filters)->with(['sentences' => function ($q) {
             $q->limit(1);
-        }])->get();
+        }])
+        ->orderBy('id')
+        ->get();
 
         $pdf = Pdf::loadView('pdf.pdf_words', [
             'items' => WordResource::collection($words),
@@ -103,9 +134,34 @@ class WordController extends ApiController
             'words' => 'required|array',
             // 'target_lang' => 'required|string'
         ]);
-        $resuls = $this->translationService->translateAI($request->input('words'), $request->input('target_lang'));
 
-        return $resuls;
+        try {
+            // $results = $this->translationService->translateAI($request->input('words'), $request->input('target_lang'));
+            $results =  [
+                [
+
+                    "original" => "vertraut sein (mit + D.)",
+                    "translation" => "быть знакомым с кем-либо/чем-либо"
+                ],
+                [
+                    "original" => "sich vertraut machen (mit + D.)",
+                    "translation" => "ознакомиться с кем-либо/чем-либо"
+                ],
+                [
+                    "original" => "vertraulich",
+                    "translation" => "конфиденциальный, доверительный"
+                ]
+            ];
+            // dd($results);
+            return $this->ok(
+                'Words translated successfully',
+                [
+                    'words' => $results,
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->ok('Something went wrong: ' . $e->getMessage(), 200);
+        }
     }
 
     public function generateSentence(Request $request)
@@ -144,6 +200,7 @@ class WordController extends ApiController
         }
     }
 
+    //TODO: Devide big query into smaller ones, and create a resource for this response and return it, instead of array with strings
     public function generateSentencesForCapital(Request $request)
     {
         $request->validate([

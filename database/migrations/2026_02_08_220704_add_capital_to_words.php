@@ -17,9 +17,7 @@ return new class extends Migration
         });
 
         Schema::table('words', function (Blueprint $table) {
-            // $table->string('new_column_name')->after('existing_column')->nullable();
-            
-            // $table->foreignId('words_capital_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('words_capital_id')->nullable()->constrained('words_capital')->cascadeOnDelete();
         });
     }
 
@@ -29,7 +27,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('words', function (Blueprint $table) {
-            $table->dropColumn('capital_id');
+            $table->dropForeignIdFor('words_capital');
+            $table->dropColumn('words_capital_id');
         });
         
         Schema::dropIfExists('words_capital');

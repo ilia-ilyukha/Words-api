@@ -14,6 +14,13 @@ use thiagoalessio\TesseractOCR\TesseractOCR;
 
 class WordService
 {
+    protected OpenRouterService $openRouterService;
+    
+    public function __construct(OpenRouterService $openRouterService)
+    {
+        $this->openRouterService = $openRouterService;
+    }
+
     public function prepareForStoreXML($xmlData)
     {
         $results = DB::transaction(function () use ($xmlData) {
@@ -153,26 +160,9 @@ class WordService
                 ]
             ]
         ]);
-
-        if (!$response->json()['choices'][0]['message']['content']) {
-            Log::info('Received response from OpenRouter', [
-                'response' => $response->json()
-            ]);
-        }
-        
-        $results = $response->json()['choices'][0]['message']['content'] ?? 'No response';
-        $results = explode("|", $results);
-        // TODO: Create a resource for this response and return it, instead of array with strings
-        return [
-            'type' => 'sentences',
-            'word'  => $text,
-            'sentences' => [
-                "B2" => [
-                    'DE' => $results[0] ?? '',
-                    'RU' => $results[1] ?? '',
-                ],
-            ],
-        ];
+        $results = $this->openRouterService->processResponse($response, $text);
+        dd($results);
+        return $this->openRouterService->processResponse($response, $text);
     }
     /**
      * Read a word resource by ID
