@@ -17,7 +17,7 @@ class FileProcessorServiceProvider extends ServiceProvider
             
             $dispatcher
                 ->addProcessor(new JpgFileProcessor())
-                ->addProcessor(new XmlFileProcessor(new WordService()));
+                ->addProcessor(new XmlFileProcessor(new WordService(new \App\Services\OpenRouterService())));
 
             return $dispatcher;
         });
