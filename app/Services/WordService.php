@@ -160,8 +160,8 @@ class WordService
                 ]
             ]
         ]);
-        $results = $this->openRouterService->processResponse($response, $text);
-        dd($results);
+        // $results = $this->openRouterService->processResponse($response, $text);
+        // dd($results);
         return $this->openRouterService->processResponse($response, $text);
     }
     /**
