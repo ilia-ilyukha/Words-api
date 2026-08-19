@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'openai' => [
+        'url' => env('OPENROUTER_API_URL', 'https://openrouter.ai/api/v1/chat/completions'),
+        'key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_API_model'),
+    ],
 ];

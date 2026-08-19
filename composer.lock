@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7c9ce4bf3ca318664de69ebb1942d759",
+    "content-hash": "aaf6ec4c818e28f6e672c32f45aab82f",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -737,6 +737,77 @@
                 }
             ],
             "time": "2023-10-06T06:47:41+00:00"
+        },
+        {
+            "name": "flowgistics/laravel-xml",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Flowgistics/laravel-xml.git",
+                "reference": "9fd2b909572c76fd156f6d055dc049e15a447319"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Flowgistics/laravel-xml/zipball/9fd2b909572c76fd156f6d055dc049e15a447319",
+                "reference": "9fd2b909572c76fd156f6d055dc049e15a447319",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-json": "*",
+                "ext-simplexml": "*",
+                "illuminate/support": ">=8.47",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^6.15",
+                "phpunit/phpunit": "^9.3",
+                "spatie/phpunit-snapshot-assertions": "^4.0",
+                "vimeo/psalm": "^4.8"
+            },
+            "suggest": {
+                "illuminate/view": "Required to use the load view feature.",
+                "laravel/laravel": "Required to use the load view feature."
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "XML": "Flowgistics\\XML\\XMLFacade"
+                    },
+                    "providers": [
+                        "Flowgistics\\XML\\XMLServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Flowgistics\\XML\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Flowgistics",
+                    "email": "support@flowgistics.nl",
+                    "homepage": "https://flowgistics.nl/",
+                    "role": "Developer"
+                }
+            ],
+            "homepage": "https://github.com/Flowgistics/laravel-xml",
+            "keywords": [
+                "laravel",
+                "reader",
+                "xml"
+            ],
+            "support": {
+                "issues": "https://github.com/Flowgistics/laravel-xml/issues",
+                "source": "https://github.com/Flowgistics/laravel-xml/tree/1.2.0"
+            },
+            "time": "2025-03-28T11:35:42+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -1490,16 +1561,16 @@
         },
         {
             "name": "laravel/prompts",
-            "version": "v0.1.24",
+            "version": "v0.1.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/prompts.git",
-                "reference": "409b0b4305273472f3754826e68f4edbd0150149"
+                "reference": "7b4029a84c37cb2725fc7f011586e2997040bc95"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/prompts/zipball/409b0b4305273472f3754826e68f4edbd0150149",
-                "reference": "409b0b4305273472f3754826e68f4edbd0150149",
+                "url": "https://api.github.com/repos/laravel/prompts/zipball/7b4029a84c37cb2725fc7f011586e2997040bc95",
+                "reference": "7b4029a84c37cb2725fc7f011586e2997040bc95",
                 "shasum": ""
             },
             "require": {
@@ -1542,9 +1613,9 @@
             "description": "Add beautiful and user-friendly forms to your command-line applications.",
             "support": {
                 "issues": "https://github.com/laravel/prompts/issues",
-                "source": "https://github.com/laravel/prompts/tree/v0.1.24"
+                "source": "https://github.com/laravel/prompts/tree/v0.1.25"
             },
-            "time": "2024-06-17T13:58:22+00:00"
+            "time": "2024-08-12T22:06:33+00:00"
         },
         {
             "name": "laravel/sanctum",
