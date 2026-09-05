@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 
 use function Laravel\Prompts\spin;
 use function \Laravel\Prompts\text;
+use App\Ai\Tools\Tool;
 
 class AgentCommand extends Command
 {
@@ -59,36 +60,21 @@ class AgentCommand extends Command
                 }
 
                 $functionCalls->each(function (array $call) {
-                    if ($call['function']['name'] === 'get_current_time') {
-                        $currentTime = now()->toIso8601String();
-
-                        $this->history[] = [
-                            'role' => 'tool',
-                            'tool_call_id' => $call['id'],
-                            'content' => $currentTime,
-                        ];
+                    info('Function call: ' . $call['function']['name'] . ' with arguments: ' . json_encode($call['function']['arguments']));
+                    
+                    foreach ($this->tools() as $tool) {
+                        if ($tool->definition()['function']['name'] === $call['function']['name']) {
+                            $result = $tool->use(json_decode($call['function']['arguments'], associative: true));
+                            $this->history[] = [
+                                'role' => 'tool',
+                                'tool_call_id' => $call['id'],
+                                'content' => $result,
+                                'type' => 'function_call_output',
+                            ];
+                        }
                     }
-                    if ($call['function']['name'] === 'read_file') {
-
-                        $this->history[] = [
-                            'role' => 'tool',
-                            'tool_call_id' => $call['id'],
-                            'content' => file_get_contents(
-                                base_path(json_decode($call['function']['arguments'])->path)
-                            ),
-                        ];
-                    }
+                    
                 });
-                
-                // if (
-                //     isset($message['tool_calls']) &&
-                //     $message['tool_calls'][0]['type'] === 'function'
-                // ) {
-                //     $call = $message['tool_calls'][0];
-                //     // $content = $call['function']['name']();
-
-
-                // }
             }
         }
     }
@@ -105,41 +91,20 @@ class AgentCommand extends Command
             ->post(config('services.openai.url'), [
                 'model' => config('services.openai.model'),
                 'messages' => $this->history,
-                'tools' => [
-                    [
-                        'type' => 'function',
-                        'function' => [
-                            'name' => 'get_current_time',
-                            'description' => 'Get the current server time as an ISO 8601 string',
-                            'parameters' => [
-                                'type' => 'object',
-                                'properties' => new \stdClass(),
-                            ],
-                        ],
-                    ],
-                    [
-                        'type' => 'function',
-                        'function' => [
-                            'name' => 'read_file',
-                            'description' => 'Read the contents of a file, relative to project root.',
-                            'parameters' => [
-                                'type' => 'object',
-                                'properties' => [
-                                    'path' => [
-                                        'type' => 'string',
-                                        'description' => 'The relative path to the file.',
-                                    ],
-                                    // 'required' => ['path'],
-                                    // 'additionalProperties' => false,
-                                ],
-                            ],
-                        ],
-                    ]
-                ],
+                // 'tools' => $this->tools(),
+                'tools' => array_map(fn(Tool $tool) => $tool->definition(), $this->tools()),
                 'tool_choice' => 'required',
                 'stream' => false,
             ])
             ->throw()
             ->json();
+    }
+
+    public function tools()
+    {
+        return [
+            new \App\Ai\Tools\CurrentTime(),
+            new \App\Ai\Tools\ReadFile(),
+        ];
     }
 }
