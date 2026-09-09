@@ -3,11 +3,12 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 
 use function Laravel\Prompts\spin;
 use function \Laravel\Prompts\text;
 use App\Ai\Tools\Tool;
+use App\Ai\Agents\ChatbotAgent;
+use App\Ai\Agents\GrammarAssistantAgent;
 
 class AgentCommand extends Command
 {
@@ -33,49 +34,16 @@ class AgentCommand extends Command
 
     public function handle()
     {
+        // $agent = new GrammarAssistantAgent();
+        $agent = new ChatbotAgent();
+
         while (true) {
             $prompt = text('What is on your mind?', required: true);
 
-            $this->history[] = [
-                'role' => 'user',
-                'content' => $prompt,
-            ];
-
-            while (true) {
-                $response = spin(
-                    fn() => $this->runModel(),
-                    'Thinking...',
-                );
-
-                $message = $response['choices'][0]['message'];
-                $this->history[] = $message;
-
-                $functionCalls = collect($response['choices'][0]['message']['tool_calls'] ?? [])
-                    ->filter(fn($item) => $item['type'] === 'function');
-
-                if ($functionCalls->isEmpty()) {
-                    $this->info($message['content']);
-
-                    break;
-                }
-
-                $functionCalls->each(function (array $call) {
-                    info('Function call: ' . $call['function']['name'] . ' with arguments: ' . json_encode($call['function']['arguments']));
-                    
-                    foreach ($this->tools() as $tool) {
-                        if ($tool->definition()['function']['name'] === $call['function']['name']) {
-                            $result = $tool->use(json_decode($call['function']['arguments'], associative: true));
-                            $this->history[] = [
-                                'role' => 'tool',
-                                'tool_call_id' => $call['id'],
-                                'content' => $result,
-                                'type' => 'function_call_output',
-                            ];
-                        }
-                    }
-                    
-                });
-            }
+            $response = spin(
+                fn() => $agent->prompt($prompt),
+                'Thinking...',
+            );
         }
     }
 
@@ -84,27 +52,26 @@ class AgentCommand extends Command
         return now()->toIso8601String();
     }
 
-    public function runModel()
+    /**
+     * Run the specified tool based on the function call.
+     *
+     * @param array $call
+     * @return void
+     */
+    public function runTool(array $call)
     {
-        return Http::withToken(config('services.openai.key'))
-            ->timeout(300)
-            ->post(config('services.openai.url'), [
-                'model' => config('services.openai.model'),
-                'messages' => $this->history,
-                // 'tools' => $this->tools(),
-                'tools' => array_map(fn(Tool $tool) => $tool->definition(), $this->tools()),
-                'tool_choice' => 'required',
-                'stream' => false,
-            ])
-            ->throw()
-            ->json();
-    }
+        foreach ($this->tools() as $tool) {
+            if ($tool->definition()['function']['name'] === $call['function']['name']) {
+                $result = $tool->use(json_decode($call['function']['arguments'], associative: true));
+                $this->history[] = [
+                    'role' => 'tool',
+                    'tool_call_id' => $call['id'],
+                    'content' => (string)$result,
+                    'type' => 'function_call_output',
+                ];
 
-    public function tools()
-    {
-        return [
-            new \App\Ai\Tools\CurrentTime(),
-            new \App\Ai\Tools\ReadFile(),
-        ];
+                info('Function result: ' .  (string)$result);
+            }
+        }
     }
 }
