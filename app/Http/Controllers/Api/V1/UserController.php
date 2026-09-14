@@ -9,20 +9,25 @@ use App\Http\Requests\Api\V1\UpdateUserRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Models\User;
 
-class AuthorsController extends ApiController
+use App\Policies\V1\UserPolicy;
+
+class UserController extends ApiController
 {
+    protected $policyClass = UserPolicy::class;
     /**
      * Display a listing of the resource.
      */
     public function index(AuthorFilter $filters)
     {
-        return UserResource::collection(
-            User::select('users.*')
-            ->join('tickets', 'users.id', '=', 'tickets.user_id')
-            ->filter($filters)
-            ->distinct()
-            ->paginate()
-        );
+        return UserResource::collection(User::filter($filters)->paginate());
+
+        // return UserResource::collection(
+        //     User::select('users.*')
+        //     ->join('tickets', 'users.id', '=', 'tickets.user_id')
+        //     ->filter($filters)
+        //     ->distinct()
+        //     ->paginate()
+        // );
     }
 
     /**
